@@ -18,7 +18,12 @@ public:
 
 private slots:
     void on_btn_connect_clicked(bool checked);
+    void on_btn_select_save_dir_clicked();
     void onConnectionChanged(NetworkModel::ConnectionState state);
+    void onFileReceiveStarted(const QString &file_name, qint64 file_size);
+    void onFileReceiveProgress(qint64 bytes_received, qint64 total_bytes);
+    void onFileReceiveCompleted(const QString &saved_file_path);
+    void onFileReceiveError(const QString &error_message);
 
 private:
     Ui::MainWindowClass *ui;

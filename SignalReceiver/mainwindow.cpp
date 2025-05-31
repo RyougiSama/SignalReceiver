@@ -1,5 +1,7 @@
 ﻿#include "mainwindow.h"
 #include <QMessageBox>
+#include <QFileDialog>
+#include <QDir>
 
 MainWindow::MainWindow(QWidget *parent)
     : QWidget(parent)
@@ -9,6 +11,12 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     // 连接网络模型信号
     connect(network_model, &NetworkModel::connectionChanged, this, &MainWindow::onConnectionChanged);
+    connect(network_model, &NetworkModel::fileReceiveStarted, this, &MainWindow::onFileReceiveStarted);
+    connect(network_model, &NetworkModel::fileReceiveProgress, this, &MainWindow::onFileReceiveProgress);
+    connect(network_model, &NetworkModel::fileReceiveCompleted, this, &MainWindow::onFileReceiveCompleted);
+    connect(network_model, &NetworkModel::fileReceiveError, this, &MainWindow::onFileReceiveError);
+    // 设置默认保存目录
+    network_model->SetReceiveDirectory(QDir::currentPath());
 }
 
 MainWindow::~MainWindow()
@@ -68,4 +76,41 @@ void MainWindow::onConnectionChanged(NetworkModel::ConnectionState state)
         ui->btn_connect->setText("建立连接");
         break;
     }
+}
+
+void MainWindow::on_btn_select_save_dir_clicked()
+{
+    QString directory = QFileDialog::getExistingDirectory(this, "选择文件保存目录", QDir::currentPath());
+    if (!directory.isEmpty()) {
+        network_model->SetReceiveDirectory(directory);
+        ui->textBrowser_client_info->append("文件保存目录已设置为: " + directory);
+    }
+}
+
+void MainWindow::onFileReceiveStarted(const QString &file_name, qint64 file_size)
+{
+    ui->textBrowser_client_info->append(QString("开始接收文件: %1 (大小: %2 字节)")
+                                       .arg(file_name)
+                                       .arg(file_size));
+}
+
+void MainWindow::onFileReceiveProgress(qint64 bytes_received, qint64 total_bytes)
+{
+    int progress = static_cast<int>((bytes_received * 100) / total_bytes);
+    ui->textBrowser_client_info->append(QString("接收进度: %1% (%2/%3 字节)")
+                                       .arg(progress)
+                                       .arg(bytes_received)
+                                       .arg(total_bytes));
+}
+
+void MainWindow::onFileReceiveCompleted(const QString &saved_file_path)
+{
+    ui->textBrowser_client_info->append("文件接收完成，已保存到: " + saved_file_path);
+    QMessageBox::information(this, "文件接收完成", "文件已成功保存到:\n" + saved_file_path);
+}
+
+void MainWindow::onFileReceiveError(const QString &error_message)
+{
+    ui->textBrowser_client_info->append("文件接收错误: " + error_message);
+    QMessageBox::warning(this, "文件接收错误", error_message);
 }

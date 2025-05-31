@@ -3,7 +3,6 @@
 #include <QObject>
 #include <QTcpSocket>
 #include <QHostAddress>
-#include <QTimer>
 
 class NetworkModel : public QObject
 {
@@ -33,12 +32,9 @@ signals:
     void connectionChanged(ConnectionState state);
 
 private slots:
-    void onConnected();
     void onErrorOccurred(QAbstractSocket::SocketError error);
-    void onConnectionTimeout();
 
 private:
     QTcpSocket *socket_;
     QString error_message_;
-    QTimer *connection_timer_;
 };

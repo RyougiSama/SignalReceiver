@@ -33,14 +33,9 @@ void MainWindow::on_btn_connect_clicked(bool checked)
         }
         // 开始连接
         network_model->StartConnection(ip, port);
-        ui->textBrowser_client_info->append("正在连接中...");
-        ui->btn_connect->setText("连接中...");
-        ui->btn_connect->setEnabled(false);
     } else {
         // 断开连接
         network_model->CloseConnection();
-        ui->textBrowser_client_info->append("连接已断开");
-        ui->btn_connect->setText("建立连接");
     }
 }
 
@@ -56,10 +51,12 @@ void MainWindow::onConnectionChanged(NetworkModel::ConnectionState state)
         ui->btn_connect->setChecked(true);
         break;
     case NetworkModel::Disconnected:
+        ui->textBrowser_client_info->append("连接已断开");
         ui->btn_connect->setText("建立连接");
         ui->btn_connect->setChecked(false);
         break;
     case NetworkModel::Connecting:
+        ui->textBrowser_client_info->append("正在连接中...");
         ui->btn_connect->setText("连接中...");
         ui->btn_connect->setEnabled(false);
         break;

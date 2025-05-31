@@ -39,6 +39,7 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+// Button Slots
 void MainWindow::on_btn_connect_clicked(bool checked)
 {
     if (checked) {
@@ -65,7 +66,7 @@ void MainWindow::on_btn_load_received_file_clicked()
         return;
     }
     if (txt_model_->LoadTxtFile(file_name)) {
-        ui->textBrowser_original->setText(txt_model_->get_txt_raw_data());
+        ui->textBrowser_original->setText(txt_model_->get_txt_received_data());
         ui->btn_demodulate->setEnabled(true);
     }
 }
@@ -82,6 +83,22 @@ void MainWindow::on_btn_demodulate_clicked()
     ui->btn_decode->setEnabled(true);
 }
 
+void MainWindow::on_btn_decode_clicked()
+{
+    txt_model_->DecodeTxtFile(ui->comboBox_decoding->currentText());
+    ui->textBrowser_decoded->setText(txt_model_->get_txt_recovered_data());
+    ui->btn_save_recovered_file->setEnabled(true);
+}
+
+void MainWindow::on_btn_save_recovered_file_clicked()
+{
+    const auto file_name = QFileDialog::getSaveFileName(this, "Save Recovered File", "", "Text Files (*.txt)");
+    if (!file_name.isEmpty()) {
+        txt_model_->SaveRecoverdFile(file_name);
+    }
+}
+
+// Network Slots
 void MainWindow::onConnectionChanged(NetworkModel::ConnectionState state)
 {
     // 恢复按钮可用状态

@@ -33,4 +33,6 @@ private:
 private slots:
     void on_btn_load_received_file_clicked();
     void on_btn_demodulate_clicked();
+    void on_btn_decode_clicked();
+    void on_btn_save_recovered_file_clicked();
 };

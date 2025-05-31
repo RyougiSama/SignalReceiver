@@ -26,7 +26,7 @@ public:
 public:
     NetworkModel(QObject *parent);
     ~NetworkModel();
-    
+
     void StartConnection(const QString &ip, const QString &port);
     void CloseConnection();
     void SetReceiveDirectory(const QString &directory_path);
@@ -57,7 +57,7 @@ private:
     QString error_message_;
     QString receive_directory_;
     ReceiveState receive_state_;
-    
+
     // 文件接收相关
     QString expected_file_name_;
     qint64 expected_file_size_;

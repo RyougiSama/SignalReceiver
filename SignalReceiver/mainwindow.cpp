@@ -16,7 +16,12 @@ MainWindow::MainWindow(QWidget *parent)
     connect(network_model, &NetworkModel::fileReceiveCompleted, this, &MainWindow::onFileReceiveCompleted);
     connect(network_model, &NetworkModel::fileReceiveError, this, &MainWindow::onFileReceiveError);
     // 设置默认保存目录
-    network_model->SetReceiveDirectory(QDir::currentPath());
+    QString receive_dir = QDir::currentPath() + "/Received Files";
+    QDir dir(receive_dir);
+    if (!dir.exists()) {
+        dir.mkpath(receive_dir);
+    }
+    network_model->SetReceiveDirectory(receive_dir);
 }
 
 MainWindow::~MainWindow()
@@ -75,15 +80,6 @@ void MainWindow::onConnectionChanged(NetworkModel::ConnectionState state)
         ui->btn_connect->setChecked(false);
         ui->btn_connect->setText("建立连接");
         break;
-    }
-}
-
-void MainWindow::on_btn_select_save_dir_clicked()
-{
-    QString directory = QFileDialog::getExistingDirectory(this, "选择文件保存目录", QDir::currentPath());
-    if (!directory.isEmpty()) {
-        network_model->SetReceiveDirectory(directory);
-        ui->textBrowser_client_info->append("文件保存目录已设置为: " + directory);
     }
 }
 

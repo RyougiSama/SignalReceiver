@@ -43,9 +43,15 @@
     <ClCompile Include="networkmodel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="txtmodel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="networkmodel.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="txtmodel.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>

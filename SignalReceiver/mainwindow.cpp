@@ -6,29 +6,35 @@
 MainWindow::MainWindow(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::MainWindowClass())
-    , network_model(new NetworkModel(this))
+    , network_model_(new NetworkModel(this))
+    , txt_model_(new TxtModel(this))
 {
     ui->setupUi(this);
+    ui->label_sample_rate->setText(" 采样率: " + QString::number(txt_model_->kSampleRate) + " Hz"
+                                   + "                    "
+                                   + " 传信率: " + QString::number(txt_model_->kSampleRate / txt_model_->kSamplesPerBit) + " bps"
+                                   + "                    "
+                                   + " 载波: " + QString::number(txt_model_->kCarrierFreq) + " Hz");
     // 连接网络模型信号
-    connect(network_model, &NetworkModel::connectionChanged, this, &MainWindow::onConnectionChanged);
-    connect(network_model, &NetworkModel::fileReceiveStarted, this, &MainWindow::onFileReceiveStarted);
-    connect(network_model, &NetworkModel::fileReceiveProgress, this, &MainWindow::onFileReceiveProgress);
-    connect(network_model, &NetworkModel::fileReceiveCompleted, this, &MainWindow::onFileReceiveCompleted);
-    connect(network_model, &NetworkModel::fileReceiveError, this, &MainWindow::onFileReceiveError);
+    connect(network_model_, &NetworkModel::connectionChanged, this, &MainWindow::onConnectionChanged);
+    connect(network_model_, &NetworkModel::fileReceiveStarted, this, &MainWindow::onFileReceiveStarted);
+    connect(network_model_, &NetworkModel::fileReceiveProgress, this, &MainWindow::onFileReceiveProgress);
+    connect(network_model_, &NetworkModel::fileReceiveCompleted, this, &MainWindow::onFileReceiveCompleted);
+    connect(network_model_, &NetworkModel::fileReceiveError, this, &MainWindow::onFileReceiveError);
     // 设置默认保存目录
     QString receive_dir = QDir::currentPath() + "/Received Files";
     QDir dir(receive_dir);
     if (!dir.exists()) {
         dir.mkpath(receive_dir);
     }
-    network_model->SetReceiveDirectory(receive_dir);
+    network_model_->set_receive_directory(receive_dir);
 }
 
 MainWindow::~MainWindow()
 {
     // 确保在程序退出前断开连接
-    if (network_model->IsConnected()) {
-        network_model->CloseConnection();
+    if (network_model_->IsConnected()) {
+        network_model_->CloseConnection();
     }
     delete ui;
 }
@@ -45,11 +51,35 @@ void MainWindow::on_btn_connect_clicked(bool checked)
             return;
         }
         // 开始连接
-        network_model->StartConnection(ip, port);
+        network_model_->StartConnection(ip, port);
     } else {
         // 断开连接
-        network_model->CloseConnection();
+        network_model_->CloseConnection();
     }
+}
+
+void MainWindow::on_btn_load_received_file_clicked()
+{
+    const auto file_name = QFileDialog::getOpenFileName(this, "选择接收的文件", network_model_->get_receive_directory(), "文本文件 (*.txt)");
+    if (file_name.isEmpty()) {
+        return;
+    }
+    if (txt_model_->LoadTxtFile(file_name)) {
+        ui->textBrowser_original->setText(txt_model_->get_txt_raw_data());
+        ui->btn_demodulate->setEnabled(true);
+    }
+}
+
+void MainWindow::on_btn_demodulate_clicked()
+{
+    txt_model_->DemodulateTxtFile(ui->comboBox_demodulation->currentText());
+    const auto &data = txt_model_->get_txt_demodulated_data();
+    QString str;
+    for (const auto bit : data) {
+        str.append(QString::number(bit));
+    }
+    ui->textBrowser_demodulated->setText(str.trimmed());
+    ui->btn_decode->setEnabled(true);
 }
 
 void MainWindow::onConnectionChanged(NetworkModel::ConnectionState state)
@@ -74,7 +104,7 @@ void MainWindow::onConnectionChanged(NetworkModel::ConnectionState state)
         ui->btn_connect->setEnabled(false);
         break;
     case NetworkModel::Error:
-        QString error = network_model->GetErrorMessage();
+        QString error = network_model_->get_error_message();
         ui->textBrowser_client_info->append("连接失败: " + error);
         QMessageBox::warning(this, "连接失败", error);
         ui->btn_connect->setChecked(false);

@@ -3,6 +3,7 @@
 #include <QtWidgets/QWidget>
 #include "ui_mainwindow.h"
 #include "networkmodel.h"
+#include "txtmodel.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindowClass; };
@@ -26,5 +27,10 @@ private slots:
 
 private:
     Ui::MainWindowClass *ui;
-    NetworkModel *network_model;
+    NetworkModel *network_model_;
+    TxtModel *txt_model_;
+
+private slots:
+    void on_btn_load_received_file_clicked();
+    void on_btn_demodulate_clicked();
 };

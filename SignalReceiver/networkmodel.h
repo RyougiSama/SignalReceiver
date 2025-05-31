@@ -29,13 +29,13 @@ public:
 
     void StartConnection(const QString &ip, const QString &port);
     void CloseConnection();
-    void SetReceiveDirectory(const QString &directory_path);
 
-    bool IsValidIPv4(const QString &ip) const { QHostAddress address(ip); return !address.isNull() && address.protocol() == QAbstractSocket::IPv4Protocol; }
-    bool IsValidPort(const QString &port, quint16 &port_num) const { bool ok{ false }; auto value = port.toUShort(&ok); if (ok && value > 0 && value <= 65535) { port_num = static_cast<quint16>(value); return true; } return false; }
+    void set_receive_directory(const QString &directory_path);
+
     bool IsConnected() const { return socket_->state() == QAbstractSocket::ConnectedState; }
-    QString GetErrorMessage() const { return error_message_.isEmpty() ? socket_->errorString() : error_message_; }
+    QString get_error_message() const { return error_message_.isEmpty() ? socket_->errorString() : error_message_; }
     ReceiveState get_receive_state() const { return receive_state_; }
+    QString get_receive_directory() const { return receive_directory_; }
 
 signals:
     void connectionChanged(ConnectionState state);
@@ -49,6 +49,8 @@ private slots:
     void onReadyRead();
 
 private:
+    bool IsValidIPv4(const QString &ip) const { QHostAddress address(ip); return !address.isNull() && address.protocol() == QAbstractSocket::IPv4Protocol; }
+    bool IsValidPort(const QString &port, quint16 &port_num) const { bool ok{ false }; auto value = port.toUShort(&ok); if (ok && value > 0 && value <= 65535) { port_num = static_cast<quint16>(value); return true; } return false; }
     void ProcessIncomingData();
     void ResetReceiveState();
 

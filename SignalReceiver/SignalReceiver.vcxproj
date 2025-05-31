@@ -93,6 +93,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="networkmodel.cpp" />
+    <ClCompile Include="txtmodel.cpp" />
     <QtRcc Include="mainwindow.qrc" />
     <QtUic Include="mainwindow.ui" />
     <QtMoc Include="mainwindow.h" />
@@ -101,6 +102,9 @@
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="networkmodel.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="txtmodel.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

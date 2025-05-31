@@ -74,7 +74,7 @@ void NetworkModel::CloseConnection()
     emit connectionChanged(Disconnected);
 }
 
-void NetworkModel::SetReceiveDirectory(const QString &directory_path)
+void NetworkModel::set_receive_directory(const QString &directory_path)
 {
     if (QDir(directory_path).exists()) {
         receive_directory_ = directory_path;

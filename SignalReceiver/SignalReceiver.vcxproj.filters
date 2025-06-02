@@ -46,12 +46,18 @@
     <ClCompile Include="txtmodel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="audiomodel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="networkmodel.h">
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="txtmodel.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="audiomodel.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>

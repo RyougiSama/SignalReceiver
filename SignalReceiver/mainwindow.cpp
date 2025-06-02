@@ -2,12 +2,14 @@
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QDir>
+#include <QFileInfo>
 
 MainWindow::MainWindow(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::MainWindowClass())
     , network_model_(new NetworkModel(this))
     , txt_model_(new TxtModel(this))
+    , audio_model_(new AudioModel(this))
 {
     ui->setupUi(this);
     ui->label_sample_rate->setText(" 采样率: " + QString::number(txt_model_->kSampleRate) + " Hz"
@@ -28,6 +30,10 @@ MainWindow::MainWindow(QWidget *parent)
         dir.mkpath(receive_dir);
     }
     network_model_->set_receive_directory(receive_dir);
+    
+    // 连接音频播放相关信号
+    connect(audio_model_, &AudioModel::PlaybackPositionChanged, this, &MainWindow::UpdatePlaybackProgress);
+    connect(audio_model_, &AudioModel::PlaybackFinished, this, &MainWindow::OnPlaybackFinished);
 }
 
 MainWindow::~MainWindow()
@@ -156,4 +162,105 @@ void MainWindow::onFileReceiveError(const QString &error_message)
 {
     ui->textBrowser_client_info->append("文件接收错误: " + error_message);
     QMessageBox::warning(this, "文件接收错误", error_message);
+}
+
+// 音频播放功能相关
+void MainWindow::on_btn_open_recorded_file_clicked()
+{
+    const auto file_name = QFileDialog::getOpenFileName(this, "打开WAV文件", network_model_->get_receive_directory(), "WAV文件 (*.wav)");
+    if (file_name.isEmpty()) {
+        return;
+    }
+    ui->lineEdit_wav_file_path->setText(file_name);
+    if (audio_model_->LoadWavFile(file_name)) {
+        const int total_duration = audio_model_->get_playback_total_duration();
+        const int minutes = total_duration / 60;
+        const int seconds = total_duration % 60;
+
+        ui->label_playback->setText(QString("00:00 / %1:%2")
+                                    .arg(minutes, 2, 10, QChar('0'))
+                                    .arg(seconds, 2, 10, QChar('0')));
+        ui->progressBar_playback->setValue(0);
+
+        QMessageBox::information(this, "文件加载成功",
+                                QString("WAV文件已加载: %1\n时长: %2:%3")
+                                .arg(QFileInfo(file_name).fileName())
+                                .arg(minutes, 2, 10, QChar('0'))
+                                .arg(seconds, 2, 10, QChar('0')));
+        
+        ui->btn_play_wav->setEnabled(true);
+        ui->btn_pause_wav->setEnabled(false);
+        ui->btn_close_wav->setEnabled(false);
+    } else {
+        ui->lineEdit_wav_file_path->clear();
+        QMessageBox::warning(this, "文件加载失败", "无法加载WAV文件，请检查文件格式。");
+    }
+}
+
+void MainWindow::on_btn_play_wav_clicked()
+{
+    if (ui->lineEdit_wav_file_path->text().isEmpty()) {
+        QMessageBox::warning(this, "播放失败", "请先选择要播放的WAV文件。");
+        return;
+    }
+    if (audio_model_->StartPlayback()) {
+        ui->btn_play_wav->setEnabled(false);
+        ui->btn_pause_wav->setEnabled(true);
+        ui->btn_close_wav->setEnabled(true);
+        ui->btn_open_recorded_file->setEnabled(false);
+    } else {
+        QMessageBox::warning(this, "播放失败", "无法开始播放，请检查音频文件和设备状态。");
+    }
+}
+
+void MainWindow::on_btn_pause_wav_clicked()
+{
+    audio_model_->PausePlayback();
+    if (audio_model_->IsPlaying()) {
+        ui->btn_pause_wav->setText("暂停");
+    } else {
+        ui->btn_pause_wav->setText("继续");
+    }
+}
+
+void MainWindow::on_btn_close_wav_clicked()
+{
+    audio_model_->StopPlayback();
+    OnPlaybackFinished();
+}
+
+void MainWindow::UpdatePlaybackProgress(int current_seconds, int total_seconds)
+{
+    const int current_minutes = current_seconds / 60;
+    const int current_secs = current_seconds % 60;
+    const int total_minutes = total_seconds / 60;
+    const int total_secs = total_seconds % 60;
+    // 更新时间标签
+    ui->label_playback->setText(QString("%1:%2 / %3:%4")
+                                .arg(current_minutes, 2, 10, QChar('0'))
+                                .arg(current_secs, 2, 10, QChar('0'))
+                                .arg(total_minutes, 2, 10, QChar('0'))
+                                .arg(total_secs, 2, 10, QChar('0')));
+    // 更新进度条
+    if (total_seconds > 0) {
+        const int progress = (current_seconds * 100) / total_seconds;
+        ui->progressBar_playback->setValue(progress);
+    }
+}
+
+void MainWindow::OnPlaybackFinished()
+{
+    ui->btn_play_wav->setEnabled(true);
+    ui->btn_pause_wav->setEnabled(false);
+    ui->btn_close_wav->setEnabled(false);
+    ui->btn_pause_wav->setText("暂停");
+    ui->btn_open_recorded_file->setEnabled(true);
+    ui->progressBar_playback->setValue(0);
+
+    const int total_duration = audio_model_->get_playback_total_duration();
+    const int minutes = total_duration / 60;
+    const int seconds = total_duration % 60;
+    ui->label_playback->setText(QString("00:00 / %1:%2")
+                                .arg(minutes, 2, 10, QChar('0'))
+                                .arg(seconds, 2, 10, QChar('0')));
 }
